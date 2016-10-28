@@ -9,6 +9,7 @@ import (
 
 	"github.com/karrick/gobp"
 	"github.com/karrick/gopool"
+	"github.com/oxtoacart/bpool"
 )
 
 const (
@@ -17,6 +18,17 @@ const (
 )
 
 func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }
+
+func newBspool() (func() *bytes.Buffer, func(*bytes.Buffer)) {
+	p := bpool.NewSizedBufferPool(poolSize, bufSize)
+	setup := func() *bytes.Buffer {
+		return p.Get()
+	}
+	teardown := func(buf *bytes.Buffer) {
+		p.Put(buf)
+	}
+	return setup, teardown
+}
 
 func newGobp() (func() *bytes.Buffer, func(*bytes.Buffer)) {
 	p := &gobp.Pool{
@@ -109,6 +121,11 @@ func benchmarkHigh(b *testing.B, setup func() *bytes.Buffer, teardown func(*byte
 ////////////////////////////////////////
 // Low Concurrency
 
+func BenchmarkLowConcurrencyBspool(b *testing.B) {
+	setup, teardown := newBspool()
+	benchmarkLow(b, setup, teardown)
+}
+
 func BenchmarkLowConcurrencyGobp(b *testing.B) {
 	setup, teardown := newGobp()
 	benchmarkLow(b, setup, teardown)
@@ -131,6 +148,11 @@ func BenchmarkLowConcurrencySyncPool(b *testing.B) {
 
 ////////////////////////////////////////
 // High Concurrency
+
+func BenchmarkHighConcurrencyBspool(b *testing.B) {
+	setup, teardown := newBspool()
+	benchmarkHigh(b, setup, teardown)
+}
 
 func BenchmarkHighConcurrencyGobp(b *testing.B) {
 	setup, teardown := newGobp()
