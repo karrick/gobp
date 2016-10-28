@@ -5,16 +5,11 @@ import (
 	"sync"
 )
 
-// Pool is a free-list of
+// Pool is a buffer free-list.
 //
 //	p := &gobp.Pool{
 //		BufSizeInit: bufSize,
 //		PoolSizeMax: poolSize,
-//	}
-//
-//      // optionally, pre-initialize buffers
-//	for i := 0; i < poolSize; i++ {
-//		p.Put(newBuf())
 //	}
 //
 //      buf := p.Get()

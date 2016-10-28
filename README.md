@@ -41,13 +41,8 @@ specified, the pool will create a new `bytes.Buffer` with whatever default _that
 ```Go
 	p := new(gobp.Pool)
 
-    // optionally, pre-initialize buffers
-	for i := 0; i < poolSize; i++ {
-		p.Put(newBuf())
-	}
-
 	buf := p.Get()
-	buf.Reset()
+	buf.WriteString("test")
 	p.Put(buf)
 ```
 
@@ -57,29 +52,29 @@ Here is a more complex example illustrating concurrent access to the pool.
 
 ```Go
 	package main
-	
+
 	import (
 		"bytes"
 		"errors"
 		"fmt"
 		"math/rand"
 		"sync"
-	
+
 		"github.com/karrick/gobp"
 	)
-	
+
 	const (
 		bufSize                = 16 * 1024
 		poolSize               = 50
 		perGoRoutineIterations = 100
 	)
-	
+
 	func main() {
 		const goroutines = poolSize
-	
+
 		var wg sync.WaitGroup
 		wg.Add(goroutines)
-	
+
 		pool := &gobp.Pool{
 			BufSizeInit: bufSize,
 			BufSizeMax:  bufSize + 1024,
@@ -90,12 +85,12 @@ Here is a more complex example illustrating concurrent access to the pool.
 		for i := 0; i < poolSize; i++ {
 			pool.Put(bytes.NewBuffer(make([]byte, 0, bufSize)))
 		}
-	
+
         // run some concurrency tests
 		for c := 0; c < goroutines; c++ {
 			go func() {
 				defer wg.Done()
-	
+
 				for i := 0; i < perGoRoutineIterations; i++ {
 					if err := grabBufferAndUseIt(pool); err != nil {
 						fmt.Println(err)
@@ -106,15 +101,15 @@ Here is a more complex example illustrating concurrent access to the pool.
 
 		wg.Wait()
 	}
-	
+
 	func grabBufferAndUseIt(pool *gobp.Pool) error {
         // NOTE: Like all resources obtained from a pool, failing to release
         // results in resource leaks.
 		bb := pool.Get()
 		defer pool.Put(bb)
-	
+
 		extra := rand.Intn(bufSize) - bufSize/2 // 4096 +/- 2048
-	
+
 		for i := 0; i < extra+bufSize; i++ {
 			if rand.Intn(100000000) == 1 {
 				return errors.New("random error to illustrate need to return resource to pool")

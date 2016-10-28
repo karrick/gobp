@@ -1,21 +1,16 @@
-package gobp
+package gobp_test
 
 import (
 	"bytes"
 	"testing"
 )
 
-// Pool is a free-list of
+// ChanPool is a buffer free-list.
 //
-//	p := &gobp.Pool{
+//	p := &gobp.NewChanPool(&gobp.ChanPool{
 //		BufSizeInit: bufSize,
 //		PoolSizeMax: poolSize,
-//	}
-//
-//      // optionally, pre-initialize buffers
-//	for i := 0; i < poolSize; i++ {
-//		p.Put(newBuf())
-//	}
+//	})
 //
 //      buf := p.Get()
 //      buf.Reset()
@@ -73,7 +68,7 @@ func (p *ChanPool) Put(bb *bytes.Buffer) {
 ////////////////////////////////////////
 
 func newGobpChan() (func() *bytes.Buffer, func(*bytes.Buffer)) {
-	p := gobp.NewChanPool(&gobp.ChanPool{
+	p := NewChanPool(&ChanPool{
 		// BufSizeInit: bufSize,
 		BufSizeMax:  bufSize,
 		PoolSizeMax: poolSize,
