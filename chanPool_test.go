@@ -67,7 +67,7 @@ func (p *ChanPool) Put(bb *bytes.Buffer) {
 
 ////////////////////////////////////////
 
-func newGobpChan() (func() *bytes.Buffer, func(*bytes.Buffer)) {
+func newGobpChan() pool {
 	p := NewChanPool(&ChanPool{
 		// BufSizeInit: bufSize,
 		BufSizeMax:  bufSize,
@@ -76,15 +76,9 @@ func newGobpChan() (func() *bytes.Buffer, func(*bytes.Buffer)) {
 	for i := 0; i < poolSize; i++ {
 		p.Put(newBuf())
 	}
-	return p.Get, p.Put
+	return p
 }
 
-func BenchmarkLowConcurrencyGobpChan(b *testing.B) {
-	setup, teardown := newGobpChan()
-	benchmarkLow(b, setup, teardown)
-}
-
-func BenchmarkHighConcurrencyGobpChan(b *testing.B) {
-	setup, teardown := newGobpChan()
-	benchmarkHigh(b, setup, teardown)
+func BenchmarkGobpChan(b *testing.B) {
+	benchLowAndHigh(b, newGobpChan())
 }

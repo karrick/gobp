@@ -62,23 +62,10 @@ func (bp *SizedBufferPool) Put(b *bytes.Buffer) {
 
 ////////////////////////////////////////
 
-func newBspool2() (func() *bytes.Buffer, func(*bytes.Buffer)) {
-	p := NewSizedBufferPool(poolSize, bufSize)
-	setup := func() *bytes.Buffer {
-		return p.Get()
-	}
-	teardown := func(buf *bytes.Buffer) {
-		p.Put(buf)
-	}
-	return setup, teardown
+func newBspool2() pool {
+	return NewSizedBufferPool(poolSize, bufSize)
 }
 
-func BenchmarkLowConcurrencyBspool2(b *testing.B) {
-	setup, teardown := newBspool2()
-	benchmarkLow(b, setup, teardown)
-}
-
-func BenchmarkHighConcurrencyBspool2(b *testing.B) {
-	setup, teardown := newBspool2()
-	benchmarkHigh(b, setup, teardown)
+func BenchmarkBspool(b *testing.B) {
+	benchLowAndHigh(b, newBspool2())
 }
