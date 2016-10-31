@@ -1,3 +1,5 @@
+// +build bench
+
 package gobp_test
 
 import (
@@ -10,18 +12,6 @@ import (
 	"github.com/karrick/gobp"
 	"github.com/karrick/gopool"
 )
-
-const (
-	bufSize  = 16 * 1024
-	poolSize = 64
-)
-
-type pool interface {
-	Get() *bytes.Buffer
-	Put(*bytes.Buffer)
-}
-
-func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }
 
 func newGobp() pool {
 	p := &gobp.Pool{

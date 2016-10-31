@@ -11,6 +11,16 @@ import (
 	"github.com/karrick/gobp"
 )
 
+const (
+	bufSize  = 16 * 1024
+	poolSize = 64
+)
+
+type pool interface {
+	Get() *bytes.Buffer
+	Put(*bytes.Buffer)
+}
+
 func TestGobpStress(t *testing.T) {
 	const bufSize = 16 * 1024
 	const poolSizeMax = 8
@@ -64,3 +74,5 @@ func grabBufferAndUseIt(pool *gobp.Pool) error {
 	}
 	return nil
 }
+
+func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }

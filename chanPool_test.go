@@ -1,3 +1,5 @@
+// +build bench
+
 package gobp_test
 
 import (

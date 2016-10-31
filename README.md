@@ -119,3 +119,13 @@ Here is a more complex example illustrating concurrent access to the pool.
 		return nil
 	}
 ```
+
+## Development Note
+
+Build tags have been included to protect against including additional libraries used only for
+benchmarks. To run comparison benchmarks, add the `bench` tag to the command line as demonstrated
+below.
+
+```Bash
+go test -v -bench=. -tags=bench
+```
