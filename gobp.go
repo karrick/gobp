@@ -7,14 +7,14 @@ import (
 
 // Pool is a buffer free-list.
 //
-//	p := &gobp.Pool{
-//		BufSizeInit: bufSize,
-//		PoolSizeMax: poolSize,
-//	}
+//    p := &gobp.Pool{
+//    	BufSizeInit: bufSize,
+//    	PoolSizeMax: poolSize,
+//    }
 //
-//      buf := p.Get()
-//      buf.Reset()
-//      p.Put(buf)
+//    buf := p.Get()
+//    buf.WriteString("test")
+//    p.Put(buf)
 type Pool struct {
 	// BufSizeInit is the initial byte size of newly created new buffers. When omitted, new
 	// buffers have the default size of a newly created empty `bytes.Buffer` instance.

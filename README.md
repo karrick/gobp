@@ -86,7 +86,7 @@ Here is a more complex example illustrating concurrent access to the pool.
 			pool.Put(bytes.NewBuffer(make([]byte, 0, bufSize)))
 		}
 
-        // run some concurrency tests
+		// run some concurrency tests
 		for c := 0; c < goroutines; c++ {
 			go func() {
 				defer wg.Done()
@@ -103,8 +103,8 @@ Here is a more complex example illustrating concurrent access to the pool.
 	}
 
 	func grabBufferAndUseIt(pool *gobp.Pool) error {
-        // NOTE: Like all resources obtained from a pool, failing to release
-        // results in resource leaks.
+		// NOTE: Like all resources obtained from a pool, failing to release
+		// results in resource leaks.
 		bb := pool.Get()
 		defer pool.Put(bb)
 
