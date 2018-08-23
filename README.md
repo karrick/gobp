@@ -81,7 +81,7 @@ Here is a more complex example illustrating concurrent access to the pool.
 			PoolSizeMax: poolSize,
 		}
 
-        // optionally fill the pool with pre-allocated buffers
+		// optionally fill the pool with pre-allocated buffers
 		for i := 0; i < poolSize; i++ {
 			pool.Put(bytes.NewBuffer(make([]byte, 0, bufSize)))
 		}
