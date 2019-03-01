@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	bufSize                = 16 * 1024
+	bufSize                = 32 * 1024 // based on Go allocation slab size
 	poolSize               = 50
 	perGoRoutineIterations = 100
 )
@@ -24,7 +24,7 @@ func main() {
 
 	pool := &gobp.Pool{
 		BufSizeInit: bufSize,
-		BufSizeMax:  bufSize + 1024,
+		BufSizeMax:  bufSize << 1,
 		PoolSizeMax: poolSize,
 	}
 

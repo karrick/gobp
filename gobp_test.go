@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	bufSize  = 16 * 1024
+	bufSize  = 32 * 1024 // based on Go allocation slab size
 	poolSize = 64
 )
 
@@ -33,7 +33,7 @@ func TestGobpStress(t *testing.T) {
 
 	pool := &gobp.Pool{
 		BufSizeInit: bufSize,
-		BufSizeMax:  bufSize + 1024,
+		BufSizeMax:  bufSize << 1,
 		PoolSizeMax: poolSizeMax,
 	}
 
