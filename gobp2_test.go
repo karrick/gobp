@@ -2,26 +2,16 @@ package gobp_test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
-	"math/rand"
 	"sync"
 	"testing"
 
 	"github.com/karrick/gobp"
 )
 
-const (
-	bufSize  = 32 * 1024 // based on Go allocation slab size
-	poolSize = 64
-)
+const count = 1000
 
-type pool interface {
-	Get() *bytes.Buffer
-	Put(*bytes.Buffer)
-}
-
-func TestGobpStress(t *testing.T) {
+func TestGobp2Stress(t *testing.T) {
 	const bufSize = 16 * 1024
 	const poolSizeMax = 8
 	const poolSizeMin = poolSizeMax / 2
@@ -31,7 +21,7 @@ func TestGobpStress(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(goroutines)
 
-	pool := &gobp.Pool{
+	pool := &gobp.Pool2{
 		BufSizeInit: bufSize,
 		BufSizeMax:  bufSize << 1,
 		PoolSizeMax: poolSizeMax,
@@ -58,21 +48,34 @@ func TestGobpStress(t *testing.T) {
 	wg.Wait()
 }
 
-func grabBufferAndUseIt(p pool) error {
-	// NOTE: Like all resources obtained from a pool, failing to release results in resource
-	// leaks.
-	bb := p.Get()
-	defer p.Put(bb)
+func BenchmarkQueue(b *testing.B) {
+	var v int
 
-	extra := rand.Intn(bufSize) - bufSize/2 // 4096 +/- 2048
-
-	for i := 0; i < extra+bufSize; i++ {
-		if rand.Intn(100000000) == 1 {
-			return errors.New("random error to illustrate need to return resource to pool")
-		}
-		bb.WriteByte(byte(i % 256))
+	slice := make([]int, count)
+	for i := 0; i < count; i++ {
+		slice[i] = i
 	}
-	return nil
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		v, slice = slice[0], slice[1:] // shift
+		slice = append(slice, v)       // unshift
+	}
 }
 
-func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }
+func BenchmarkStack(b *testing.B) {
+	var v int
+
+	slice := make([]int, count)
+	for i := 0; i < count; i++ {
+		slice[i] = i
+	}
+	b.ResetTimer()
+
+	const cmo = count - 1
+
+	for i := 0; i < b.N; i++ {
+		v, slice = slice[cmo], slice[:cmo] // pop
+		slice = append(slice, v)           // push
+	}
+}

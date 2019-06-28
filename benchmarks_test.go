@@ -24,6 +24,17 @@ func newGobp() pool {
 	return p
 }
 
+func newGobp2() pool {
+	p := &gobp.Pool2{
+		BufSizeInit: bufSize,
+		PoolSizeMax: poolSize,
+	}
+	for i := 0; i < poolSize; i++ {
+		p.Put(newBuf())
+	}
+	return p
+}
+
 ////////////////////////////////////////
 // gopool.Pool
 
@@ -77,6 +88,7 @@ func (p *syncPool) Get() *bytes.Buffer {
 }
 
 func (p *syncPool) Put(b *bytes.Buffer) {
+	b.Reset()
 	p.p.Put(b)
 }
 
@@ -96,11 +108,10 @@ func newSyncPool() pool {
 
 func exercise(p pool) {
 	buf := p.Get()
-	defer p.Put(buf)
-
 	for i := 0; i < bufSize; i++ {
 		buf.WriteByte(byte(i % 256))
 	}
+	p.Put(buf)
 }
 
 func benchLowAndHigh(b *testing.B, p pool) {
@@ -120,13 +131,12 @@ func benchLowAndHigh(b *testing.B, p pool) {
 		b.ResetTimer()
 
 		for c := 0; c < concurrency; c++ {
-			go func() {
-				defer wg.Done()
-
-				for n := 0; n < b.N; n++ {
+			go func(iterations int) {
+				for n := 0; n < iterations; n++ {
 					exercise(p)
 				}
-			}()
+				wg.Done()
+			}(b.N)
 		}
 
 		wg.Wait()
@@ -137,6 +147,10 @@ func benchLowAndHigh(b *testing.B, p pool) {
 
 func BenchmarkGobp(b *testing.B) {
 	benchLowAndHigh(b, newGobp())
+}
+
+func BenchmarkGobp2(b *testing.B) {
+	benchLowAndHigh(b, newGobp2())
 }
 
 func BenchmarkGopool(b *testing.B) {

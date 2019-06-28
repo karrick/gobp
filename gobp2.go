@@ -1,0 +1,78 @@
+package gobp
+
+import (
+	"bytes"
+	"sync"
+)
+
+// Pool is a buffer free-list.
+//
+//    p := &gobp.Pool{
+//    	BufSizeInit: bufSize,
+//    	PoolSizeMax: poolSize,
+//    }
+//
+//    buf := p.Get()
+//    buf.WriteString("test")
+//    p.Put(buf)
+type Pool2 struct {
+	// BufSizeInit is the initial byte size of newly created new buffers. When omitted, new
+	// buffers have the default size of a newly created empty `bytes.Buffer` instance.
+	BufSizeInit int
+
+	// BufSizeMax is the maximum capacity of buffers allowed to be returned to the pool. Buffers
+	// whose capacity is larger than this value will be released to GC.
+	BufSizeMax int
+
+	// PoolSizeMax is the maximum number of buffers the pool will hold onto. Additional buffers
+	// returned to the pool will be released to GC.
+	PoolSizeMax int
+
+	free []*bytes.Buffer
+	lock sync.Mutex
+}
+
+// Get acquires and returns an item from the pool. Get does not block waiting for a buffer; if the
+// pool is empty a new buffer will be created and returned.
+func (p *Pool2) Get() (bb *bytes.Buffer) {
+	p.lock.Lock()
+
+	if i := len(p.free); i > 0 {
+		// i--
+		// bb, p.free = p.free[i], p.free[:i] // pop item from the stack
+
+		p.free, bb = p.free[1:], p.free[0] // unshift from the queue
+
+		p.lock.Unlock()
+		return
+	}
+
+	p.lock.Unlock()
+	if p.BufSizeInit == 0 {
+		return new(bytes.Buffer)
+	}
+	return bytes.NewBuffer(make([]byte, 0, p.BufSizeInit))
+}
+
+// Put will release a buffer back to the pool. If BufSizeMax is greater than 0 and the buffer's
+// capacity is greater than BufSizeMax, then the buffer is released to runtime GC. If PoolSizeMax is
+// greater than 0 and there are already PoolSizeMax elements in the pool, then the buffer is
+// released to runtime GC. Put will not block; if the pool is full the returned buffer will be
+// immediately released to runtime GC.
+func (p *Pool2) Put(bb *bytes.Buffer) {
+	if p.BufSizeMax > 0 && bb.Cap() > p.BufSizeMax {
+		return // drop buffer
+	}
+
+	p.lock.Lock()
+
+	if p.PoolSizeMax > 0 && len(p.free) == p.PoolSizeMax {
+		p.lock.Unlock()
+		return // drop buffer
+	}
+
+	// store item in pool
+	bb.Reset()
+	p.free = append(p.free, bb)
+	p.lock.Unlock()
+}
