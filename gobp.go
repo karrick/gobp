@@ -34,22 +34,20 @@ type Pool struct {
 
 // Get acquires and returns an item from the pool. Get does not block waiting for a buffer; if the
 // pool is empty a new buffer will be created and returned.
-func (p *Pool) Get() *bytes.Buffer {
+func (p *Pool) Get() (bb *bytes.Buffer) {
 	p.lock.Lock()
 
-	if len(p.free) == 0 {
+	if len(p.free) > 0 {
+		p.free, bb = p.free[1:], p.free[0] // unshift from the queue
 		p.lock.Unlock()
-		if p.BufSizeInit == 0 {
-			return &bytes.Buffer{}
-		}
-		return bytes.NewBuffer(make([]byte, 0, p.BufSizeInit))
+		return
 	}
 
-	var bb *bytes.Buffer
-	bb, p.free = p.free[0], p.free[1:]
-
 	p.lock.Unlock()
-	return bb
+	if p.BufSizeInit == 0 {
+		return new(bytes.Buffer)
+	}
+	return bytes.NewBuffer(make([]byte, 0, p.BufSizeInit))
 }
 
 // Put will release a buffer back to the pool. If BufSizeMax is greater than 0 and the buffer's
