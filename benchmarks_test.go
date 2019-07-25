@@ -108,10 +108,6 @@ func BenchmarkGobp(b *testing.B) {
 	benchLowAndHigh(b, newGobp())
 }
 
-func BenchmarkGopool(b *testing.B) {
-	benchLowAndHigh(b, newGopool())
-}
-
 func BenchmarkNoPool(b *testing.B) {
 	benchLowAndHigh(b, new(noPool))
 }
