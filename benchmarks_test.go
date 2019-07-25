@@ -4,13 +4,11 @@ package gobp_test
 
 import (
 	"bytes"
-	"log"
 	"runtime"
 	"sync"
 	"testing"
 
 	"github.com/karrick/gobp"
-	"github.com/karrick/gopool"
 )
 
 func newGobp() pool {
@@ -22,35 +20,6 @@ func newGobp() pool {
 		p.Put(newBuf())
 	}
 	return p
-}
-
-////////////////////////////////////////
-// gopool.Pool
-
-type gopoolPool struct {
-	p gopool.Pool
-}
-
-func (p *gopoolPool) Get() *bytes.Buffer {
-	return p.p.Get().(*bytes.Buffer)
-}
-
-func (p *gopoolPool) Put(b *bytes.Buffer) {
-	p.p.Put(b)
-}
-
-func newGopool() pool {
-	p, err := gopool.New(gopool.Size(poolSize),
-		gopool.Factory(func() (interface{}, error) {
-			return newBuf(), nil
-		}),
-		gopool.Reset(func(item interface{}) {
-			item.(*bytes.Buffer).Reset()
-		}))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return &gopoolPool{p: p}
 }
 
 ////////////////////////////////////////
