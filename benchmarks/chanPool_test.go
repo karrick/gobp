@@ -1,6 +1,4 @@
-// +build bench
-
-package gobp_test
+package benchmarks
 
 import (
 	"bytes"

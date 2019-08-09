@@ -1,6 +1,4 @@
-// +build bench
-
-package gobp_test
+package benchmarks
 
 import (
 	"bytes"
@@ -10,6 +8,18 @@ import (
 
 	"github.com/karrick/gobp"
 )
+
+const (
+	bufSize  = 32 * 1024 // based on Go allocation slab size
+	poolSize = 64
+)
+
+func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }
+
+type pool interface {
+	Get() *bytes.Buffer
+	Put(*bytes.Buffer)
+}
 
 func newGobp() pool {
 	p := &gobp.Pool{

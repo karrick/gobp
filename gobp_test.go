@@ -12,17 +12,11 @@ import (
 )
 
 const (
-	bufSize  = 32 * 1024 // based on Go allocation slab size
 	poolSize = 64
+	bufSize  = 32 * 1024
 )
 
-type pool interface {
-	Get() *bytes.Buffer
-	Put(*bytes.Buffer)
-}
-
 func TestGobpStress(t *testing.T) {
-	const bufSize = 16 * 1024
 	const poolSizeMax = 8
 	const poolSizeMin = poolSizeMax / 2
 	const goroutines = poolSizeMax * 2
@@ -74,5 +68,3 @@ func grabBufferAndUseIt(pool *gobp.Pool) error {
 	}
 	return nil
 }
-
-func newBuf() *bytes.Buffer { return bytes.NewBuffer(make([]byte, 0, bufSize)) }
